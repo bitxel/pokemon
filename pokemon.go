@@ -10,6 +10,9 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"flag"
+	"gopkg.in/redis.v5"
+	"time"
 )
 
 var (
@@ -54,6 +57,7 @@ var (
 	url      = "https://sgpokemap.com/query2.php?since=0&mons="
 	position = []float64{1.318563, 103.774169}
 	distance = 0.25
+	redisAddr = flag.String("redis", "127.0.0.1:6379", "redis cache addr")
 )
 
 type RespStruct struct {
@@ -101,7 +105,16 @@ func check(mon *Pokemon) (float64, bool) {
 	return 0, false
 }
 
+func stoi(s string) (i int) {
+	i, _ = strconv.Atoi(s)
+	return
+}
+
 func main() {
+	flag.Parse()
+	redisClient := redis.NewClient(&redis.Options{
+		Addr: *redisAddr,
+	})
 	var mons string
 	for k, _ := range pokeid {
 		mons += "," + k
@@ -130,8 +143,17 @@ func main() {
 	var result string
 	for _, mon := range pokemons {
 		if dist, ok := check(&mon); ok {
+			_, err := redisClient.Get(fmt.Sprintf("%s_%s", mon.Lat, mon.Lng)).Result()
+			if err == nil { //exist
+				continue
+			}
+			redisClient.SetNX(fmt.Sprintf("%s_%s", mon.Lat, mon.Lng), true, time.Minute*30)
 			result += fmt.Sprintf("pokemon:%s %f km away, attack %s, defense %s, stamina %s\n",
 				pokeid[mon.Id], dist, mon.Attack, mon.Defense, mon.Stamina)
+			if stoi(mon.Attack) >=15 || stoi(mon.Defense)>=15 || stoi(mon.Stamina) >= 15 {
+				result = "!! Amaze !! " + result
+			}
+
 		}
 	}
 	if len(result) > 0 {
