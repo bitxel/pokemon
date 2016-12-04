@@ -63,7 +63,7 @@ type RespStruct struct {
 
 type Pokemon struct {
 	Attack  string `json:"attack"`
-	Defense string `json:"defense"`
+	Defense string `json:"defence"`
 	Despawn string `json:"despawn"`
 	Lat     string `json:"lat"`
 	Lng     string `json:"lng"`
