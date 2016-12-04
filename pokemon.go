@@ -13,11 +13,47 @@ import (
 )
 
 var (
-	//pokeid   = []int{4, 86, 108, 132, 137, 143, 42}
-	pokeid   = []int{35}
+	pokeid   = map[string]string{
+		"4":"charmander",
+		"5":"charmander2",
+		"6":"charmander3",
+		"38":"vulpix2",
+		"63":"abra",
+		"64":"abra2",
+		"65":"abra3",
+		"66":"machop",
+		"67":"machop2",
+		"68":"machop3",
+		"83":"83dachong",
+		"86":"seel",
+		"87":"seal2",
+		"88":"grimer",
+		"89":"grimer2",
+		"106":"hitmonlee",
+		"107":"hitmonlee2",
+		"108":"lickitung",
+		"115":"115daishu",
+		"122":"122mr mime",
+		"128":"tauros",
+		"131":"lapras",
+		"132":"ditto",
+		"137":"porygon",
+		"138":"omanyte",
+		"139":"omanyte2",
+		"140":"kabuto",
+		"141":"kabuto2",
+		"143":"snorlax",
+		"144":"144",
+		"145":"145",
+		"146":"146",
+		"147":"dratini",
+		"148":"dratini2",
+		"149":"dratini3",
+	}
+
 	url      = "https://sgpokemap.com/query2.php?since=0&mons="
-	position = []float64{1.1234, 103.1234}
-	distance = 1.0
+	position = []float64{1.318563, 103.774169}
+	distance = 0.25
 )
 
 type RespStruct struct {
@@ -38,7 +74,7 @@ type Pokemon struct {
 }
 
 func sendmail(content string) {
-	cmd := exec.Command("mail", "-s", "pokemon comming", "email@email.com", "email@email.com")
+	cmd := exec.Command("mail", "-s", "pokemon comming", "pokemon-sg@googlegroups.com")
 	cmd.Stdin = strings.NewReader(content)
 	err := cmd.Run()
 	if err != nil {
@@ -66,10 +102,11 @@ func check(mon *Pokemon) (float64, bool) {
 }
 
 func main() {
-	mons := strconv.Itoa(pokeid[0])
-	for _, v := range pokeid {
-		mons += "," + strconv.Itoa(v)
+	var mons string
+	for k, _ := range pokeid {
+		mons += "," + k
 	}
+	mons = mons[1:]
 	url += mons
 	log.Printf("start to fetch url:%s", url)
 
@@ -93,8 +130,8 @@ func main() {
 	var result string
 	for _, mon := range pokemons {
 		if dist, ok := check(&mon); ok {
-			result += fmt.Sprintf("pokemon id:%s %f km away, attack %s, defense %s, stamina %s\n",
-				mon.Id, dist, mon.Attack, mon.Defense, mon.Stamina)
+			result += fmt.Sprintf("pokemon:%s %f km away, attack %s, defense %s, stamina %s\n",
+				pokeid[mon.Id], dist, mon.Attack, mon.Defense, mon.Stamina)
 		}
 	}
 	if len(result) > 0 {
