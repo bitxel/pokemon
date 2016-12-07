@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/bitxel/crawlee"
+	"github.com/bitxel/crawlee/crawlee"
 	"log"
 	"math"
 	"net/http"
@@ -56,7 +56,7 @@ var (
 
 	url      = "https://sgpokemap.com/query2.php?since=0&mons="
 	position = []float64{1.318563, 103.774169}
-	distance = 0.25
+	distance = 0.3
 	redisAddr = flag.String("redis", "127.0.0.1:6379", "redis cache addr")
 )
 
@@ -148,8 +148,8 @@ func main() {
 				continue
 			}
 			redisClient.SetNX(fmt.Sprintf("%s_%s", mon.Lat, mon.Lng), true, time.Minute*30)
-			result += fmt.Sprintf("pokemon:%s %f km away, attack %s, defense %s, stamina %s\n",
-				pokeid[mon.Id], dist, mon.Attack, mon.Defense, mon.Stamina)
+			result += fmt.Sprintf("pokemon:%s %f km away, attack %s, defense %s, stamina %s [http://maps.google.com/maps?q=%s,%s&zoom=14]\n",
+				pokeid[mon.Id], dist, mon.Attack, mon.Defense, mon.Stamina, mon.Lat, mon.Lng)
 			if stoi(mon.Attack) >=15 || stoi(mon.Defense)>=15 || stoi(mon.Stamina) >= 15 {
 				result = "!! Amaze !! " + result
 			}
